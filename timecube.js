@@ -8,7 +8,7 @@ if(!gl){document.body.insertAdjacentHTML('beforeend','<p style="color:#fff;paddi
 var W=1,H=1;function fit(){var d=Math.min(devicePixelRatio||1,1.5)*q;W=cv.clientWidth||innerWidth;H=cv.clientHeight||innerHeight;cv.width=Math.max(64,Math.round(W*d));cv.height=Math.max(64,Math.round(H*d))}var q=.4;fit();
 function sh(t,s){var o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(o));return o}
 function prog(f){var p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,"#version 300 es\nin vec2 a;out vec2 v;void main(){v=a*.5+.5;gl_Position=vec4(a,0.,1.);}"));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,f));gl.linkProgram(p);return p}
-var NP=96,RX=128,RY=128,RZ=64;
+var NP=96,RX=96,RY=96,RZ=48;
 /* ---------- bake one frame of the crossing into a volume layer ---------- */
 var bakeP=prog("#version 300 es\nprecision highp float;in vec2 v;out vec4 o;uniform float uT;uniform vec4 uP[96];uniform vec4 uC[96];\n"+
 "const vec2 LO[6]=vec2[6](vec2(0.,.14),vec2(0.,.86),vec2(.14,0.),vec2(.86,0.),vec2(0.,0.),vec2(1.,0.));\n"+
@@ -52,8 +52,7 @@ var ks=[1,-1,2,-2,3,-3,1,-1,2,-2];
 for(var i=0;i<NP;i++){var lane=i%6;var k=ks[(i*7+lane)%ks.length];if(lane>=4&&Math.abs(k)>2)k=k>0?1:-1;P[i*4]=lane;P[i*4+1]=(rnd()-.5)*.09;P[i*4+2]=rnd();P[i*4+3]=k;var c=pal[(rnd()*pal.length)|0];C[i*4]=c[0];C[i*4+1]=c[1];C[i*4+2]=c[2];C[i*4+3]=1}
 var fbo=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,fbo);gl.viewport(0,0,RX,RY);gl.useProgram(bakeP);gl.uniform4fv(gl.getUniformLocation(bakeP,'uP'),P);gl.uniform4fv(gl.getUniformLocation(bakeP,'uC'),C);
 var uT=gl.getUniformLocation(bakeP,'uT');
-for(var z=0;z<RZ;z++){gl.framebufferTextureLayer(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,tex,0,z);gl.uniform1f(uT,z/RZ);gl.drawArrays(gl.TRIANGLE_STRIP,0,4)}
-gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+var bz=0;function bake(n){gl.bindFramebuffer(gl.FRAMEBUFFER,fbo);gl.viewport(0,0,RX,RY);gl.useProgram(bakeP);for(var k=0;k<n&&bz<RZ;k++,bz++){gl.framebufferTextureLayer(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,tex,0,bz);gl.uniform1f(uT,bz/RZ);gl.drawArrays(gl.TRIANGLE_STRIP,0,4)}gl.bindFramebuffer(gl.FRAMEBUFFER,null)}
 /* camera */
 var yaw=-.62,pitch=.34,dist=5.0,auto=true,vy=0,vp=0,ptrs={},pd0=0,d0=0;
 cv.addEventListener('pointerdown',function(e){e.preventDefault();ptrs[e.pointerId]={x:e.clientX,y:e.clientY};try{cv.setPointerCapture(e.pointerId)}catch(x){}auto=false;hint.className='off';var k=Object.keys(ptrs);if(k.length==2){var a=ptrs[k[0]],b=ptrs[k[1]];pd0=Math.hypot(a.x-b.x,a.y-b.y);d0=dist}},{passive:false});
@@ -62,7 +61,7 @@ function up(e){delete ptrs[e.pointerId]}cv.addEventListener('pointerup',up);cv.a
 cv.addEventListener('wheel',function(e){e.preventDefault();dist=Math.max(2.6,Math.min(7,dist*(1+e.deltaY*.001)))},{passive:false});
 var U={};function loc(n){return U[n]||(U[n]=gl.getUniformLocation(viewP,n))}
 var last=0,now=0,first=true,slow=16;
-function frame(t){requestAnimationFrame(frame);if(!first&&t-last<30)return;var rd=(t-last)||16;var dt=Math.min(rd/1000,.05);last=t;slow=slow*.7+rd*.3;if(slow>38&&q>.3&&t>400){q*=.8;slow=16;fit()}now=(now+dt*.045)%1;
+function frame(t){requestAnimationFrame(frame);if(!first&&t-last<30)return;bake(4);var rd=(t-last)||16;var dt=Math.min(rd/1000,.05);last=t;slow=slow*.7+rd*.3;if(slow>38&&q>.3&&t>400){q*=.8;slow=16;fit()}now=(now+dt*.045)%1;
   if(auto&&!Object.keys(ptrs).length){yaw=-.62+Math.sin(t*.00045)*.9;}else if(!Object.keys(ptrs).length){vy*=.94;yaw-=vy*.3}
   var cp=Math.cos(pitch),sp=Math.sin(pitch);var ex=dist*cp*Math.sin(yaw),ey=dist*sp,ez=dist*cp*Math.cos(yaw);
   var fx=-ex,fy=-ey,fz=-ez,fl=Math.hypot(fx,fy,fz);fx/=fl;fy/=fl;fz/=fl;
