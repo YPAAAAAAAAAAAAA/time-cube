@@ -1,13 +1,9 @@
 # Time Cube
 
-A small WebGL2 toy: a procedural crowd crosses a scramble crossing, the frames are stacked in time into a volume, and the volume is ray-marched inside a glass box. Drag to turn the cube.
+A lightweight WebGL2 recreation of the "xy + t" street-crossing **time cube** idea: drag to turn a cube whose faces show space (x, y) and time (t) of a street crossing.
 
-Open `index.html` in a browser that supports WebGL2 (works on iPhone Safari). No build step, no dependencies.
+**Credit / source:** the concept and artwork idea come from Bradley Tangonan ([@bradleytangonan](https://x.com/bradleytangonan)), tweet art "xy + t". This repository is an original from-scratch implementation; no original code or assets were used.
 
-## Credit
+Licence: MIT (see LICENSE). Posted on GitBrew (https://gitbrew.ai).
 
-This is an original re-implementation of an idea, not a copy of any code. The concept — a street-crossing video turned into an "xy + t" time cube — comes from the tweet art by **Bradley Tangonan ([@bradleytangonan](https://x.com/bradleytangonan))**. All credit for the original artwork and idea goes to him. No code or assets from the original were used; the crowd is generated procedurally and the renderer is written from scratch.
-
-## License
-
-[MIT](LICENSE) © 2026 ypaaaaaaaaaaaaa
+Run: open `play.html` / `index.html` in a browser (WebGL2).
