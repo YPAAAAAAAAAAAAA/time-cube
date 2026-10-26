@@ -5,7 +5,7 @@
 var cv=document.getElementById('canvas'),hint=document.getElementById('hint');setTimeout(function(){hint.className='off'},2500);
 var gl=cv.getContext('webgl2',{antialias:false,alpha:false,powerPreference:'high-performance'});
 if(!gl){document.body.insertAdjacentHTML('beforeend','<p style="color:#fff;padding:20px;font:16px system-ui">WebGL2 is required.</p>');return}
-var W=1,H=1;function fit(){var d=Math.min(devicePixelRatio||1,1.5)*q;W=cv.clientWidth||innerWidth;H=cv.clientHeight||innerHeight;cv.width=Math.max(64,Math.round(W*d));cv.height=Math.max(64,Math.round(H*d))}var q=.7;fit();
+var W=1,H=1;function fit(){var d=Math.min(devicePixelRatio||1,1.5)*q;W=cv.clientWidth||innerWidth;H=cv.clientHeight||innerHeight;cv.width=Math.max(64,Math.round(W*d));cv.height=Math.max(64,Math.round(H*d))}var q=.4;fit();
 function sh(t,s){var o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(o));return o}
 function prog(f){var p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,"#version 300 es\nin vec2 a;out vec2 v;void main(){v=a*.5+.5;gl_Position=vec4(a,0.,1.);}"));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,f));gl.linkProgram(p);return p}
 var NP=96,RX=128,RY=128,RZ=64;
@@ -29,7 +29,7 @@ var viewP=prog("#version 300 es\nprecision highp float;precision highp sampler3D
 "void main(){float asp=uRes.x/uRes.y;vec2 uv=(v*2.-1.)*vec2(asp,1.)*max(1.,1./asp)*.58;vec3 rd=normalize(uF*1.9+uR*uv.x+uU*uv.y);vec3 ro=uEye;\n"+
 "vec3 inv=1./rd;vec3 t0=(-HB-ro)*inv,t1=(HB-ro)*inv;vec3 tmn=min(t0,t1),tmx=max(t0,t1);float tn=max(max(tmn.x,tmn.y),tmn.z),tf=min(min(tmx.x,tmx.y),tmx.z);\n"+
 "vec3 bg=vec3(.0);if(tf<=max(tn,0.)){o=vec4(bg,1.);return;}\n"+
-"float len=tf-tn;const int N=40;float ds=len/float(N);vec3 acc=vec3(0.);float tr=1.;\n"+
+"float len=tf-tn;const int N=28;float ds=len/float(N);vec3 acc=vec3(0.);float tr=1.;\n"+
 "float jit=fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453);\n"+
 "vec3 pe=(ro+rd*tn)/HB;vec3 s0=samp(pe);float l0=dot(s0,vec3(.33));acc+=s0*.5;tr=.5;\n"+
 "for(int i=0;i<N;i++){vec3 p=(ro+rd*(tn+ds*(float(i)+jit)))/HB;vec3 c=samp(p);float l=dot(c,vec3(.33));float a=1.-exp(-ds*(.5+1.2*l));acc+=tr*a*c;tr*=1.-a;}\n"+
@@ -62,7 +62,7 @@ function up(e){delete ptrs[e.pointerId]}cv.addEventListener('pointerup',up);cv.a
 cv.addEventListener('wheel',function(e){e.preventDefault();dist=Math.max(2.6,Math.min(7,dist*(1+e.deltaY*.001)))},{passive:false});
 var U={};function loc(n){return U[n]||(U[n]=gl.getUniformLocation(viewP,n))}
 var last=0,now=0,first=true,slow=16;
-function frame(t){requestAnimationFrame(frame);var rd=(t-last)||16;var dt=Math.min(rd/1000,.05);last=t;slow=slow*.7+rd*.3;if(slow>38&&q>.3&&t>400){q*=.8;slow=16;fit()}now=(now+dt*.045)%1;
+function frame(t){requestAnimationFrame(frame);if(!first&&t-last<30)return;var rd=(t-last)||16;var dt=Math.min(rd/1000,.05);last=t;slow=slow*.7+rd*.3;if(slow>38&&q>.3&&t>400){q*=.8;slow=16;fit()}now=(now+dt*.045)%1;
   if(auto&&!Object.keys(ptrs).length){yaw=-.62+Math.sin(t*.00045)*.9;}else if(!Object.keys(ptrs).length){vy*=.94;yaw-=vy*.3}
   var cp=Math.cos(pitch),sp=Math.sin(pitch);var ex=dist*cp*Math.sin(yaw),ey=dist*sp,ez=dist*cp*Math.cos(yaw);
   var fx=-ex,fy=-ey,fz=-ez,fl=Math.hypot(fx,fy,fz);fx/=fl;fy/=fl;fz/=fl;
